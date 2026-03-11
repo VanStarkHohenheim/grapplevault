@@ -1,26 +1,132 @@
 @import "tailwindcss";
 
+/* ============================================================
+   LIQUID GLASS — DESIGN SYSTEM
+   ============================================================ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #05050d;
+  --foreground: #ededed;
+
+  /* Glass tokens */
+  --glass-bg:        rgba(255, 255, 255, 0.045);
+  --glass-bg-hover:  rgba(255, 255, 255, 0.08);
+  --glass-border:    rgba(255, 255, 255, 0.09);
+  --glass-highlight: rgba(255, 255, 255, 0.14);
+  --glass-blur:      20px;
+  --glass-shadow:    0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
+/* ---- Base ---- */
+html, body {
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ---- Custom scrollbar ---- */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
+}
+::-webkit-scrollbar              { width: 5px; height: 5px; }
+::-webkit-scrollbar-track        { background: transparent; }
+::-webkit-scrollbar-thumb        { background: rgba(255,255,255,0.09); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover  { background: rgba(255,255,255,0.16); }
+
+/* ---- Hide scrollbar (horizontal tag bars) ---- */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
+/* ============================================================
+   GLASS UTILITIES
+   ============================================================ */
+
+/* Surface de base */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  border: 1px solid var(--glass-border);
+}
+
+/* Card avec highlight interne et ombre */
+.glass-card {
+  position: relative;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.06) 0%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+/* Specular highlight — filet lumineux sur le bord supérieur */
+.glass-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.10) 0%,
+    transparent 40%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+.glass-card:hover {
+  border-color: rgba(250, 204, 21, 0.25);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 0 20px rgba(250, 204, 21, 0.06);
+  transform: translateY(-2px);
+}
+
+/* Bouton glass pill */
+.glass-pill {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.glass-pill:hover {
+  background: var(--glass-bg-hover);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+
+/* Shimmer de chargement */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+.glass-skeleton {
+  background: linear-gradient(
+    105deg,
+    rgba(255, 255, 255, 0.03) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite;
+}
+
+/* Float doux pour les orbes */
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%       { transform: translateY(-30px) scale(1.04); }
+}
+@keyframes float-slower {
+  0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+  50%       { transform: translateY(20px) scale(0.97) rotate(5deg); }
 }

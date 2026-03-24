@@ -11,29 +11,29 @@
 
 ## 📌 Présentation
 
-**GrappleVault** est une application web fullstack développée dans le cadre d'un projet d'étude. Elle permet aux pratiquants de BJJ de consulter une bibliothèque de vidéos de compétitions, de sauvegarder leurs favoris, de laisser des commentaires et d'accéder à un espace exclusif réservé aux membres du club TCB.
+**GrappleVault** est une application web fullstack développée dans le cadre d'un projet d'étude. Elle permet aux pratiquants de BJJ de consulter une bibliothèque de vidéos de compétitions, de sauvegarder leurs favoris, de laisser des commentaires, de prendre des notes et d'accéder à un espace exclusif réservé aux membres du club TCB.
 
-Le projet a été conçu avec une UI **Liquid Glass** inspirée des tendances design modernes (glassmorphism), et développé en autonomie assistée par des outils d'IA générative.
+L'interface suit un langage visuel **Liquid Glass** (glassmorphism) et a été entièrement développée avec l'assistance d'outils d'IA générative intégrés dans VS Code.
 
 ---
 
 ## 🤖 Outils d'IA utilisés dans le développement
 
-Ce projet a été développé avec l'assistance de deux agents IA intégrés directement dans l'environnement de développement **Visual Studio Code** :
+Ce projet a été développé avec l'assistance de deux agents IA intégrés dans **Visual Studio Code** :
 
 ### 🔵 Claude Code (Anthropic) — via extension VS Code
-- Génération et refactoring de composants React/TypeScript complexes
-- Mise en place du système d'authentification Supabase (email/password + Google OAuth)
-- Création du panel d'administration (Server Actions, CRUD vidéos, gestion TCB)
-- Débogage de logique métier (filtres, RLS Supabase, flux OAuth)
+- Génération et refactoring de composants React/TypeScript
+- Mise en place de l'authentification (email/password + Google OAuth)
+- Création du système TCB (questionnaire, accès conditionnel, badge membre)
+- Débogage (filtres, RLS Supabase, flux OAuth)
 - Rédaction de ce README
 
 ### 🟡 Gemini (Google) — via extension VS Code
-- Assistance à la conception de l'architecture de la base de données
+- Assistance à la conception de l'architecture BDD
 - Suggestions de structure de composants
-- Recherche de solutions techniques et documentation
+- Recherche de solutions techniques
 
-> L'utilisation de ces outils s'inscrit dans une démarche de **développement augmenté** : les IA ont joué le rôle d'assistants techniques, tandis que les décisions d'architecture, de design et de fonctionnalités sont restées sous contrôle humain.
+> Les outils IA ont joué un rôle d'**assistants techniques**. Les décisions d'architecture, de design et de fonctionnalités sont restées sous contrôle humain.
 
 ---
 
@@ -45,11 +45,11 @@ Ce projet a été développé avec l'assistance de deux agents IA intégrés dir
 | Langage | **TypeScript 5** | Typage statique |
 | Style | **Tailwind CSS v4** | Utility-first CSS |
 | Backend / BDD | **Supabase** | Auth, PostgreSQL, Storage, RLS |
-| UI Components | **Lucide React** | Icônes |
-| Animations | **Framer Motion** | Transitions et animations |
+| UI | **Lucide React** | Icônes |
+| Animations | **Framer Motion** | Transitions |
 | Notifications | **Sonner** | Toast notifications |
-| Lecteur vidéo | **React Player** | Lecture YouTube / Vimeo |
-| Effets visuels | **Canvas Confetti** | Effets de célébration |
+| Lecteur vidéo | **React Player** | YouTube / Vimeo |
+| Effets | **Canvas Confetti** | Célébration |
 
 ---
 
@@ -62,188 +62,359 @@ Ce projet a été développé avec l'assistance de deux agents IA intégrés dir
 │  id            uuid  PK                                         │
 │  email         text                                             │
 │  user_metadata {                                                │
-│    tcb_member  boolean  ← donne accès à l'espace TCB            │
+│    tcb_member  boolean  ← accès espace TCB exclusif             │
 │    avatar_url  text                                             │
 │    full_name   text                                             │
 │  }                                                              │
-└────┬──────────────────────────────┬───────────────┬────────────┘
-     │ FK (cascade)                 │ FK (cascade)  │ FK (cascade)
-     ▼                              ▼               ▼
-┌─────────────────┐    ┌────────────────────┐  ┌────────────────┐
-│  tcb_requests   │    │     favorites      │  │   user_notes   │
-│                 │    │                    │  │                │
-│  id        uuid │    │  id          uuid  │  │  id       uuid │
-│  user_id   uuid │    │  user_id     uuid  │  │  user_id  uuid │
-│  email     text │    │  video_id    uuid ─┼─►│  video_id uuid │
-│  motivation text│    │  created_at        │  │  content  text │
-│  experience text│    └────────────────────┘  │  created_at    │
-│  belt      text │                            └────────────────┘
-│  gym       text │
-│  status    text │    ┌────────────────────┐
-│  ┌─ pending     │    │      comments      │
-│  ├─ approved    │    │                    │
-│  └─ rejected    │    │  id          uuid  │
-│  created_at     │    │  user_id     uuid  │
-└─────────────────┘    │  video_id    uuid ─┼─►┐
-                       │  content     text  │  │
-                       │  created_at        │  │
-                       └────────────────────┘  │
-                                               │
-┌──────────────────────────────────────────────┘
+└────┬───────────────────────────┬──────────────┬────────────────┘
+     │ FK cascade                │ FK cascade   │ FK cascade
+     ▼                           ▼              ▼
+┌──────────────────┐  ┌──────────────────┐  ┌─────────────────┐
+│  tcb_requests    │  │    favorites     │  │   user_notes    │
+│                  │  │                  │  │                 │
+│  id         uuid │  │  id        uuid  │  │  id        uuid │
+│  user_id    uuid │  │  user_id   uuid  │  │  user_id   uuid │
+│  email      text │  │  video_id  uuid──┼─►│  video_id  uuid │
+│  motivation text │  │  created_at      │  │  content   text │
+│  experience text │  └──────────────────┘  │  created_at     │
+│  belt       text │                        └─────────────────┘
+│  gym        text │  ┌──────────────────┐
+│  status     text │  │    comments      │
+│   pending        │  │                  │
+│   approved       │  │  id        uuid  │
+│   rejected       │  │  user_id   uuid  │
+│  created_at      │  │  video_id  uuid──┼─►┐
+└──────────────────┘  │  content   text  │  │
+                      │  created_at      │  │
+                      └──────────────────┘  │
+                                            │
+┌───────────────────────────────────────────┘
 │
 ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                           videos                                │
 │                                                                 │
 │  id                  uuid   PK                                  │
-│  title               text                                       │
-│  description         text                                       │
-│  url                 text   ← URL YouTube / Vimeo               │
-│  poster_url          text   ← URL miniature                     │
-│  platform            text   ← "youtube" | "vimeo"              │
-│  competition_context text   ← "ADCC 2017", "Worlds 2019"...    │
-│  duration            integer ← durée en secondes               │
+│  title               text   — Titre de la vidéo                 │
+│  description         text   — Description / contexte technique  │
+│  url                 text   — URL YouTube (watch?v=...)         │
+│  poster_url          text   — URL miniature YouTube             │
+│  platform            text   — "youtube" | "vimeo"              │
+│  competition_context text   — ex: "ADCC 2017", "Worlds 2019"   │
+│  duration            integer — durée en secondes                │
 │  created_at          timestamptz                                │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│                           segments                              │
+│  (timestamps cliquables dans le lecteur vidéo)                  │
+│                                                                 │
+│  id          uuid   PK                                          │
+│  video_id    uuid   FK → videos                                 │
+│  label       text   — ex: "Entrée en single leg"                │
+│  start_time  integer — en secondes                              │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Politique de sécurité (Row Level Security)
-
-Toutes les tables ont la **RLS activée** :
-
-| Table | Règle |
-|---|---|
-| `tcb_requests` | Un utilisateur ne peut lire/insérer que sa propre demande |
-| `favorites` | Un utilisateur ne peut gérer que ses propres favoris |
-| `comments` | Lecture publique, écriture authentifiée uniquement |
-| `user_notes` | Lecture/écriture strictement privées |
-| `videos` | Lecture publique, écriture réservée au `service_role` (admin) |
-
 ---
 
-## 🔐 Authentification
-
-Deux méthodes de connexion disponibles :
-
-1. **Email / Mot de passe** — avec générateur de mot de passe sécurisé (`crypto.getRandomValues`) et jauge de force visuelle
-2. **Google OAuth** — via Supabase Auth (flux implicite)
-
-### Niveaux d'accès
+## 🔐 Authentification & niveaux d'accès
 
 | Rôle | Accès |
 |---|---|
 | Visiteur non connecté | Catalogue vidéos public, Hall of Fame |
 | Utilisateur connecté | + Favoris, commentaires, notes, profil |
 | Membre TCB | + Espace vidéos exclusif TCB |
-| Admin | + Panel d'administration complet (`/admin`) |
 
 ---
 
-## 📱 Fonctionnalités
+## 🚀 Installation locale — Guide complet
 
-### Côté utilisateur
-- 🎬 **Catalogue vidéos** — filtres par championnat (Worlds, ADCC, Europeans, Brasileiros, Pan Ams, Open)
-- ⭐ **Favoris** — sauvegarde des vidéos préférées
-- 💬 **Commentaires** — discussions par vidéo
-- 📝 **Notes personnelles** — prises de notes liées à chaque vidéo
-- 🏆 **Hall of Fame** — carrousel interactif des légendes BJJ avec animation de carte 3D flip
-- 🔒 **Espace TCB** — accès conditionnel, demande d'intégration par questionnaire
+### Prérequis
 
-### Côté admin (`/admin`)
-- ✅ Gestion des demandes TCB (approuver / rejeter)
-- 🎬 CRUD complet sur les vidéos (ajout, modification, suppression)
-- 🔑 Double sécurité : vérification côté client + `assertAdmin()` côté serveur
+- **Node.js** ≥ 18 — [nodejs.org](https://nodejs.org)
+- **npm** ≥ 9 (inclus avec Node.js)
+- Un compte **Supabase** gratuit — [supabase.com](https://supabase.com)
 
 ---
 
-## 🎨 Design System — Liquid Glass
-
-L'interface suit un langage visuel **Liquid Glass** :
-
-- Fonds translucides avec `backdrop-filter: blur() saturate()`
-- Highlight spéculaire via pseudo-élément `::before`
-- Orbes de lumière animés en arrière-plan (`float-slow`, `float-slower`)
-- Palette : noir profond `#05050D` + accent or `#facc15`
-- Animations 3D CSS (`rotateY`, `backface-visibility`, `transform-style: preserve-3d`)
-- Scrollbar custom, skeleton loaders, animations shimmer
-
----
-
-## 🚀 Installation locale
+### Étape 1 — Cloner le projet
 
 ```bash
-# Cloner le projet
-git clone https://github.com/TON_USERNAME/grapplevault.git
+git clone https://github.com/VanStarkHohenheim/grapplevault.git
 cd grapplevault
-
-# Installer les dépendances
 npm install
+```
 
-# Créer le fichier d'environnement
-cp .env.example .env.local
-# Remplir les variables (voir ci-dessous)
+---
 
-# Lancer le serveur de développement
+### Étape 2 — Créer le projet Supabase
+
+1. Va sur [supabase.com](https://supabase.com) → **New project**
+2. Choisis un nom, un mot de passe et une région (ex: West EU)
+3. Attends la création (~1 min)
+4. Va dans **Settings → API** et note :
+   - `Project URL` → `NEXT_PUBLIC_SUPABASE_URL`
+   - `anon public` → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `service_role` → `SUPABASE_SERVICE_ROLE_KEY` ⚠️ ne jamais exposer côté client
+
+---
+
+### Étape 3 — Créer la base de données
+
+Dans Supabase → **SQL Editor**, copie-colle et exécute ce script complet :
+
+```sql
+-- ══════════════════════════════════════════════
+--  TABLE : videos
+-- ══════════════════════════════════════════════
+create table if not exists public.videos (
+  id                  uuid primary key default gen_random_uuid(),
+  title               text not null,
+  description         text,
+  url                 text not null,
+  poster_url          text,
+  platform            text not null default 'youtube',
+  competition_context text,
+  duration            integer default 0,
+  created_at          timestamptz default now()
+);
+
+-- ══════════════════════════════════════════════
+--  TABLE : segments (timestamps vidéo)
+-- ══════════════════════════════════════════════
+create table if not exists public.segments (
+  id          uuid primary key default gen_random_uuid(),
+  video_id    uuid references public.videos(id) on delete cascade,
+  label       text not null,
+  start_time  integer not null default 0
+);
+
+-- ══════════════════════════════════════════════
+--  TABLE : favorites
+-- ══════════════════════════════════════════════
+create table if not exists public.favorites (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid references auth.users(id) on delete cascade,
+  video_id   uuid references public.videos(id) on delete cascade,
+  created_at timestamptz default now(),
+  unique(user_id, video_id)
+);
+
+-- ══════════════════════════════════════════════
+--  TABLE : comments
+-- ══════════════════════════════════════════════
+create table if not exists public.comments (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid references auth.users(id) on delete cascade,
+  video_id   uuid references public.videos(id) on delete cascade,
+  content    text not null,
+  created_at timestamptz default now()
+);
+
+-- ══════════════════════════════════════════════
+--  TABLE : user_notes
+-- ══════════════════════════════════════════════
+create table if not exists public.user_notes (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid references auth.users(id) on delete cascade,
+  video_id   uuid references public.videos(id) on delete cascade,
+  content    text not null default '',
+  created_at timestamptz default now(),
+  unique(user_id, video_id)
+);
+
+-- ══════════════════════════════════════════════
+--  TABLE : tcb_requests
+-- ══════════════════════════════════════════════
+create table if not exists public.tcb_requests (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid references auth.users(id) on delete cascade,
+  email       text not null,
+  motivation  text not null,
+  experience  text not null,
+  gym         text,
+  belt        text not null,
+  status      text not null default 'pending',
+  created_at  timestamptz default now()
+);
+
+-- ══════════════════════════════════════════════
+--  ROW LEVEL SECURITY
+-- ══════════════════════════════════════════════
+alter table public.videos        enable row level security;
+alter table public.segments      enable row level security;
+alter table public.favorites     enable row level security;
+alter table public.comments      enable row level security;
+alter table public.user_notes    enable row level security;
+alter table public.tcb_requests  enable row level security;
+
+-- Videos : lecture publique
+create policy "videos_read_public"
+  on public.videos for select using (true);
+
+-- Segments : lecture publique
+create policy "segments_read_public"
+  on public.segments for select using (true);
+
+-- Favorites : accès à ses propres favoris
+create policy "favorites_select_own"
+  on public.favorites for select to authenticated using (auth.uid() = user_id);
+create policy "favorites_insert_own"
+  on public.favorites for insert to authenticated with check (auth.uid() = user_id);
+create policy "favorites_delete_own"
+  on public.favorites for delete to authenticated using (auth.uid() = user_id);
+
+-- Comments : lecture publique, écriture authentifiée
+create policy "comments_read_public"
+  on public.comments for select using (true);
+create policy "comments_insert_auth"
+  on public.comments for insert to authenticated with check (auth.uid() = user_id);
+create policy "comments_delete_own"
+  on public.comments for delete to authenticated using (auth.uid() = user_id);
+
+-- User notes : strictement privées
+create policy "notes_select_own"
+  on public.user_notes for select to authenticated using (auth.uid() = user_id);
+create policy "notes_insert_own"
+  on public.user_notes for insert to authenticated with check (auth.uid() = user_id);
+create policy "notes_update_own"
+  on public.user_notes for update to authenticated using (auth.uid() = user_id);
+
+-- TCB requests : accès à sa propre demande
+create policy "tcb_select_own"
+  on public.tcb_requests for select to authenticated using (auth.uid() = user_id);
+create policy "tcb_insert_own"
+  on public.tcb_requests for insert to authenticated with check (auth.uid() = user_id);
+```
+
+---
+
+### Étape 4 — Configurer les variables d'environnement
+
+Crée un fichier `.env.local` à la racine du projet :
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://XXXXXXXX.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+```
+
+---
+
+### Étape 5 — Peupler la base de données depuis YouTube
+
+Le peuplement se fait via un **script à coller dans la console du navigateur** sur la page de la playlist. Aucune clé API n'est nécessaire.
+
+#### Instructions
+
+1. Ouvre la playlist YouTube dans ton navigateur :
+   **https://youtube.com/playlist?list=PLt3jppIFiNQCKNicEB625FISr-zAAr3Hz**
+
+2. **Fais défiler la page jusqu'en bas** pour que toutes les vidéos se chargent
+
+3. Ouvre les outils développeur : **F12 → onglet Console**
+
+4. Ouvre le fichier `scripts/youtube-playlist-to-sql.js` (inclus dans le projet), copie tout son contenu et colle-le dans la console, puis appuie sur **Entrée**
+
+5. Le script génère automatiquement un bloc SQL et tente de le **copier dans le presse-papier**
+
+6. Va dans **Supabase Dashboard → SQL Editor**, colle le SQL et clique **Run**
+
+> Le script extrait le titre, l'URL, la miniature et la durée de chaque vidéo visible sur la page. Les vidéos privées ou supprimées sont ignorées automatiquement.
+
+---
+
+### Étape 6 — Créer un compte
+
+1. Lance le serveur : `npm run dev`
+2. Va sur `http://localhost:3000/login`
+3. Onglet **Inscription** → entre ton email + mot de passe
+
+> Si Supabase demande une confirmation par email : **Authentication → Providers → Email → désactiver "Confirm email"** en développement local.
+
+> La gestion des membres TCB (approbation des demandes) se fait directement dans **Supabase Dashboard → Table Editor → tcb_requests**, en passant le champ `status` à `approved` et en modifiant le `user_metadata` de l'utilisateur concerné.
+
+---
+
+### Étape 7 — Lancer l'application
+
+```bash
 npm run dev
 ```
 
-### Variables d'environnement requises
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://[project].supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-SUPABASE_SERVICE_ROLE_KEY=eyJ...
-ADMIN_EMAIL=admin@email.com
-NEXT_PUBLIC_ADMIN_EMAIL=admin@email.com
-```
+Ouvre [http://localhost:3000](http://localhost:3000)
 
 ---
 
 ## 📁 Structure du projet
 
 ```
-src/
-├── app/
-│   ├── page.tsx              # Accueil — catalogue vidéos + filtres
-│   ├── layout.tsx            # Layout global (orbes, Toaster)
-│   ├── globals.css           # Design system Liquid Glass
-│   ├── login/page.tsx        # Connexion / Inscription
-│   ├── profile/page.tsx      # Profil utilisateur + badge TCB
-│   ├── favorites/page.tsx    # Vidéos favorites
-│   ├── hall-of-fame/page.tsx # Légendes BJJ
-│   ├── secret-tcb/page.tsx   # Espace membres TCB
-│   ├── video/[id]/page.tsx   # Page vidéo individuelle
-│   └── admin/
-│       ├── page.tsx          # Dashboard admin
-│       └── actions.ts        # Server Actions (CRUD, approbations)
-├── components/
-│   ├── Header.tsx            # Navigation + drawer mobile
-│   ├── VideoCard.tsx         # Carte vidéo glass
-│   ├── VideoPlayer.tsx       # Lecteur vidéo intégré
-│   ├── FighterCarousel.tsx   # Carrousel Hall of Fame 3D
-│   ├── TcbRequestForm.tsx    # Formulaire demande TCB
-│   ├── FavoriteButton.tsx    # Bouton favori avec animation
-│   ├── CommentSection.tsx    # Section commentaires
-│   ├── NoteTaker.tsx         # Prise de notes
-│   ├── SearchBar.tsx         # Barre de recherche
-│   └── AvatarUploader.tsx    # Upload avatar (Supabase Storage)
-└── lib/
-    ├── supabase.ts           # Client Supabase (public, côté client)
-    └── supabase-admin.ts     # Client Supabase (service_role, serveur uniquement)
+grapplevault/
+├── scripts/
+│   └── youtube-playlist-to-sql.js  # Script console navigateur → génère le SQL d'import
+├── src/
+│   ├── app/
+│   │   ├── page.tsx              # Accueil — catalogue + filtres par championnat
+│   │   ├── layout.tsx            # Layout global (orbes, Toaster)
+│   │   ├── globals.css           # Design system Liquid Glass
+│   │   ├── login/page.tsx        # Connexion / Inscription + Google OAuth
+│   │   ├── profile/page.tsx      # Profil + badge TCB neon
+│   │   ├── favorites/page.tsx    # Vidéos favorites
+│   │   ├── hall-of-fame/page.tsx # Légendes BJJ (carrousel 3D)
+│   │   ├── secret-tcb/page.tsx   # Espace membres TCB
+│   │   └── video/[id]/page.tsx   # Page vidéo individuelle
+│   ├── components/
+│   │   ├── Header.tsx            # Navigation + drawer mobile
+│   │   ├── VideoCard.tsx         # Carte vidéo glass
+│   │   ├── VideoPlayer.tsx       # Lecteur avec timestamps cliquables
+│   │   ├── FighterCarousel.tsx   # Carrousel Hall of Fame (flip 3D)
+│   │   ├── TcbRequestForm.tsx    # Questionnaire demande TCB
+│   │   ├── FavoriteButton.tsx    # Bouton favori animé
+│   │   ├── CommentSection.tsx    # Commentaires par vidéo
+│   │   ├── NoteTaker.tsx         # Notes personnelles
+│   │   ├── SearchBar.tsx         # Recherche plein texte
+│   │   └── AvatarUploader.tsx    # Upload avatar (Supabase Storage)
+│   └── lib/
+│       └── supabase.ts           # Client Supabase (public, côté client)
+└── .env.local                    # Variables d'environnement (non versionné)
 ```
+
+---
+
+## 📱 Fonctionnalités principales
+
+- 🎬 Catalogue vidéos avec filtres par championnat (Worlds, ADCC, Europeans, Brasileiros, Pan Ams, Open)
+- 🔍 Recherche plein texte (titre + description + contexte)
+- ⭐ Système de favoris
+- 💬 Commentaires par vidéo
+- 📝 Notes personnelles liées à chaque vidéo
+- 🏆 Hall of Fame — 7 légendes BJJ en carrousel 3D interactif
+- 🔒 Espace TCB avec système de candidature par questionnaire
+
+---
+
+## 🎨 Design System — Liquid Glass
+
+- `backdrop-filter: blur() saturate()` pour les fonds translucides
+- Pseudo-élément `::before` pour les highlights spéculaires
+- Orbes de lumière animés en position fixe (fond)
+- Palette : `#05050D` (fond) + `#facc15` (accent or)
+- Animations CSS 3D : `rotateY`, `backface-visibility`, `transform-style: preserve-3d`
 
 ---
 
 ## 👨‍🎓 Contexte académique
 
-Ce projet a été réalisé dans le cadre d'une formation en développement web. Il illustre la mise en pratique de :
+Ce projet illustre la mise en pratique de :
 
-- Architecture **fullstack moderne** avec Next.js App Router et Server Actions
-- Gestion de l'**authentification** et des **autorisations** par niveaux (RLS, rôles, metadata)
-- Intégration d'un **BaaS** (Backend as a Service) avec Supabase
-- Conception d'une **UI/UX cohérente** avec un design system custom (Liquid Glass)
-- Utilisation responsable des **outils IA** comme assistants au développement (Claude Code, Gemini)
+- Architecture **fullstack moderne** avec Next.js 16 App Router et Server Actions
+- Gestion de l'**authentification multi-méthode** et des **autorisations par niveaux** (RLS PostgreSQL)
+- Intégration d'un **BaaS** (Supabase) comme alternative à un backend custom
+- Automatisation de la **collecte de données** via script console navigateur
+- Conception d'une **UI/UX cohérente** avec un design system custom
+- Usage responsable des **IA génératives** comme outils de développement augmenté
 
 ---
 
-*Développé avec passion pour le BJJ — assisté par Claude Code & Gemini via VS Code*
+*Développé avec l'assistance de Claude Code (Anthropic) & Gemini (Google) via VS Code*

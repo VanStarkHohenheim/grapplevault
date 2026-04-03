@@ -153,7 +153,7 @@ npm install
 1. Va sur [supabase.com](https://supabase.com) → **New project**
 2. Choisis un nom, un mot de passe et une région (ex: West EU)
 3. Attends la création (~1 min)
-4. Va dans **Settings → API** et note :
+4. Va dans **Project Settings → Data API** et note :
    - `Project URL` → `NEXT_PUBLIC_SUPABASE_URL`
    - `anon public` → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `service_role` → `SUPABASE_SERVICE_ROLE_KEY` ⚠️ ne jamais exposer côté client
@@ -331,7 +331,9 @@ Le peuplement se fait via un **script à coller dans la console du navigateur** 
 2. Va sur `http://localhost:3000/login`
 3. Onglet **Inscription** → entre ton email + mot de passe
 
-> Si Supabase demande une confirmation par email : **Authentication → Providers → Email → désactiver "Confirm email"** en développement local.
+> ⚠️ **Confirmation email** : après l'inscription, Supabase envoie un email de confirmation. **Rien ne se passe sur la page tant que l'email n'est pas validé** — c'est normal. Ouvre ta boîte mail, clique sur le lien de confirmation, puis reviens sur `/login` pour te connecter.
+>
+> Pour désactiver cette étape en développement local : **Authentication → Providers → Email → désactiver "Confirm email"**.
 
 > La gestion des membres TCB (approbation des demandes) se fait directement dans **Supabase Dashboard → Table Editor → tcb_requests**, en passant le champ `status` à `approved` et en modifiant le `user_metadata` de l'utilisateur concerné.
 
